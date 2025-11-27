@@ -1,7 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import pdf from 'https://esm.sh/pdf-parse@1.1.1'
+import * as pdfjsLib from 'https://esm.sh/pdfjs-dist@3.11.174'
 import { Buffer } from "node:buffer"
+
+// Set up the worker for PDF.js
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://esm.sh/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -35,9 +38,18 @@ serve(async (req: Request) => {
         if (file_name.toLowerCase().endsWith('.pdf')) {
             console.log("Parsing PDF...");
             const arrayBuffer = await fileData.arrayBuffer();
-            const buffer = Buffer.from(arrayBuffer);
-            const pdfData = await pdf(buffer);
-            textContent = pdfData.text;
+            const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+            const pdfDocument = await loadingTask.promise;
+
+            const numPages = pdfDocument.numPages;
+            console.log(`PDF loaded with ${numPages} pages`);
+
+            for (let i = 1; i <= numPages; i++) {
+                const page = await pdfDocument.getPage(i);
+                const textContentItem = await page.getTextContent();
+                const pageText = textContentItem.items.map((item: any) => item.str).join(' ');
+                textContent += pageText + '\n';
+            }
 
             if (!textContent || textContent.trim().length === 0) {
                 throw new Error("OCR not yet supported, please upload a digital PDF (text-selectable).");
