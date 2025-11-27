@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-// Trigger deployment
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import pdf from 'npm:pdf-parse/lib/pdf-parse.js'
+import pdf from 'https://esm.sh/pdf-parse@1.1.1'
+import { Buffer } from "node:buffer"
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -35,7 +35,7 @@ serve(async (req) => {
         if (file_name.toLowerCase().endsWith('.pdf')) {
             console.log("Parsing PDF...");
             const arrayBuffer = await fileData.arrayBuffer();
-            const buffer = new Uint8Array(arrayBuffer);
+            const buffer = Buffer.from(arrayBuffer);
             const pdfData = await pdf(buffer);
             textContent = pdfData.text;
 
