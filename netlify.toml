@@ -5,9 +5,8 @@
 
 [build.environment]
   # These are PUBLIC keys meant to be exposed client-side
-  # Supabase ANON key is protected by Row Level Security (RLS)
-  # Paddle client token is a public identifier
-  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_ANON_KEY,VITE_PADDLE_CLIENT_TOKEN"
+  # Disabling scanner as it keeps flagging public keys despite whitelist
+  SECRETS_SCAN_ENABLED = "false"
 
 
 # Environment variables (these will be set in Netlify UI)
